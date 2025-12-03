@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Clean the URL by removing any quotes, semicolons, or whitespace
-const rawSlackUrl = process.env.SLACK_WEBHOOK_URL;
-const SLACK_WEBHOOK_URL = rawSlackUrl?.trim().replace(/^['"]|['"];?$/g, '');
+const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 
 export async function POST(request: NextRequest) {
   try {
