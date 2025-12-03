@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     console.log('Project:', projectKey);
 
     // Check if transition matches: "W TRAKCIE WERYFIKACJI" → "DO ZROBIENIA"
-    if (fromStatus === 'W TRAKCIE WERYFIKACJI' && toStatus === 'DO ZROBIENIA') {
+    if (fromStatus === 'W trakcie weryfikacji' && toStatus === 'do zrobienia') {
       console.log('✅ Match! Sending to Slack...');
 
       // Mark as processed BEFORE sending to prevent duplicates
