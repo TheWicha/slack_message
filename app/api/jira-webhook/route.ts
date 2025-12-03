@@ -2,11 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 
-// In-memory cache for deduplication
 const processedWebhooks = new Map<string, number>();
-const CACHE_DURATION = 60000; // 1 minute
+const CACHE_DURATION = 60000;
 
-// Clean up old entries periodically
 setInterval(() => {
   const now = Date.now();
   for (const [key, timestamp] of processedWebhooks.entries()) {
@@ -22,10 +20,8 @@ export async function POST(request: NextRequest) {
 
     const payload = await request.json();
 
-    // Create unique webhook identifier
     const webhookId = `${payload.issue?.key}_${payload.changelog?.id}_${payload.timestamp}`;
 
-    // Check for duplicates
     if (processedWebhooks.has(webhookId)) {
       console.log('⚠️ Duplicate webhook detected, skipping:', webhookId);
       return NextResponse.json({ message: 'Duplicate webhook' }, { status: 200 });
@@ -36,20 +32,17 @@ export async function POST(request: NextRequest) {
     const webhookEvent = payload.webhookEvent;
     const issue = payload.issue;
 
-    // Check if it's an issue update
     if (webhookEvent !== 'jira:issue_updated') {
       console.log('Not an issue update, skipping');
       return NextResponse.json({ message: 'Not an issue update' }, { status: 200 });
     }
 
-    // Check if it's from project MES
     const projectKey = issue?.fields?.project?.key;
     if (projectKey !== 'MES') {
       console.log(`Not MES project (got ${projectKey}), skipping`);
       return NextResponse.json({ message: 'Not MES project' }, { status: 200 });
     }
 
-    // Check for status change
     const changelog = payload.changelog;
     const statusChange = changelog?.items?.find(
       (item: { field: string }) => item.field === 'status'
@@ -68,11 +61,9 @@ export async function POST(request: NextRequest) {
     console.log('To:', toStatus);
     console.log('Project:', projectKey);
 
-    // Check if transition matches: "W TRAKCIE WERYFIKACJI" → "DO ZROBIENIA"
     if (fromStatus === 'W trakcie weryfikacji' && toStatus === 'do zrobienia') {
       console.log('✅ Match! Sending to Slack...');
 
-      // Mark as processed BEFORE sending to prevent duplicates
       processedWebhooks.set(webhookId, Date.now());
 
       if (!SLACK_WEBHOOK_URL) {
