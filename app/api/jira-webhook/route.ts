@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
               },
               {
                 type: 'mrkdwn',
-                text: `*Status:*\n${fromStatus} → ${toStatus}`,
+                text: `*Status:*\n${fromStatus === 'In Review' ? 'W trakcie weryfikacji' : fromStatus} → ${toStatus === 'To Do' ? 'Do zrobienia' : toStatus}`,
               },
               {
                 type: 'mrkdwn',
