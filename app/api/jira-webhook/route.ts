@@ -1,6 +1,8 @@
+import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
+const JIRA_WEBHOOK_SECRET = process.env.JIRA_WEBHOOK_SECRET;
 
 const processedWebhooks = new Map<string, number>();
 const CACHE_DURATION = 60000;
@@ -14,9 +16,40 @@ setInterval(() => {
   }
 }, 30000);
 
+function verifyJiraSignature(payload: string, signature: string | null): boolean {
+  if (!JIRA_WEBHOOK_SECRET || !signature) {
+    return false;
+  }
+
+  const receivedSignature = signature.replace('sha256=', '');
+
+  const hmac = crypto.createHmac('sha256', JIRA_WEBHOOK_SECRET);
+  hmac.update(payload);
+  const expectedSignature = hmac.digest('hex');
+
+  try {
+    return crypto.timingSafeEqual(Buffer.from(receivedSignature), Buffer.from(expectedSignature));
+  } catch {
+    return false;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const payload = await request.json();
+    if (!JIRA_WEBHOOK_SECRET) {
+      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
+    }
+
+    const signature =
+      request.headers.get('x-hub-signature') ||
+      request.headers.get('x-atlassian-webhook-identifier');
+    const rawBody = await request.text();
+
+    if (!verifyJiraSignature(rawBody, signature)) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+
+    const payload = JSON.parse(rawBody);
 
     const webhookId = `${payload.issue?.key}_${payload.changelog?.id}_${payload.timestamp}`;
 
@@ -49,7 +82,6 @@ export async function POST(request: NextRequest) {
     const toStatus = statusChange.toString;
 
     if (fromStatus === 'In Review' && toStatus === 'To Do') {
-
       processedWebhooks.set(webhookId, Date.now());
 
       if (!SLACK_WEBHOOK_URL) {
@@ -76,7 +108,9 @@ export async function POST(request: NextRequest) {
               },
               {
                 type: 'mrkdwn',
-                text: `*Status:*\n${fromStatus === 'In Review' ? 'W trakcie weryfikacji' : fromStatus} → ${toStatus === 'To Do' ? 'Do zrobienia' : toStatus}`,
+                text: `*Status:*\n${
+                  fromStatus === 'In Review' ? 'W trakcie weryfikacji' : fromStatus
+                } → ${toStatus === 'To Do' ? 'Do zrobienia' : toStatus}`,
               },
               {
                 type: 'mrkdwn',
