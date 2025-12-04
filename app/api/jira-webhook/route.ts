@@ -38,9 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     const projectKey = issue?.fields?.project?.key;
-    if (projectKey !== 'MES') {
-      console.log(`Not MES project (got ${projectKey}), skipping`);
-      return NextResponse.json({ message: 'Not MES project' }, { status: 200 });
+    if (projectKey !== 'UT') {
+      console.log(`Not UT project (got ${projectKey}), skipping`);
+      return NextResponse.json({ message: 'Not UT project' }, { status: 200 });
     }
 
     const changelog = payload.changelog;
@@ -186,7 +186,7 @@ export async function GET() {
     message: 'Jira webhook endpoint is running',
     slackConfigured: !!SLACK_WEBHOOK_URL,
     config: {
-      project: 'MES',
+      project: 'UT',
       transition: 'W TRAKCIE WERYFIKACJI → DO ZROBIENIA',
       messageTitle: 'Zadanie Gotowe do Realizacji',
       cachedWebhooks: processedWebhooks.size,
