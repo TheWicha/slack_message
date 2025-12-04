@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     console.log('To:', toStatus);
     console.log('Project:', projectKey);
 
-    if (fromStatus === 'W trakcie weryfikacji' && toStatus === 'do zrobienia') {
+    if (fromStatus === 'In Review' && toStatus === 'To Do') {
       console.log('✅ Match! Sending to Slack...');
 
       processedWebhooks.set(webhookId, Date.now());
