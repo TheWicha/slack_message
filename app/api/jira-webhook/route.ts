@@ -16,30 +16,23 @@ setInterval(() => {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== Webhook received ===');
-
     const payload = await request.json();
 
     const webhookId = `${payload.issue?.key}_${payload.changelog?.id}_${payload.timestamp}`;
 
     if (processedWebhooks.has(webhookId)) {
-      console.log('⚠️ Duplicate webhook detected, skipping:', webhookId);
       return NextResponse.json({ message: 'Duplicate webhook' }, { status: 200 });
     }
-
-    console.log('Webhook event:', payload.webhookEvent);
 
     const webhookEvent = payload.webhookEvent;
     const issue = payload.issue;
 
     if (webhookEvent !== 'jira:issue_updated') {
-      console.log('Not an issue update, skipping');
       return NextResponse.json({ message: 'Not an issue update' }, { status: 200 });
     }
 
     const projectKey = issue?.fields?.project?.key;
     if (projectKey !== 'UT') {
-      console.log(`Not UT project (got ${projectKey}), skipping`);
       return NextResponse.json({ message: 'Not UT project' }, { status: 200 });
     }
 
@@ -49,25 +42,17 @@ export async function POST(request: NextRequest) {
     );
 
     if (!statusChange) {
-      console.log('No status change detected');
       return NextResponse.json({ message: 'No status change' }, { status: 200 });
     }
 
     const fromStatus = statusChange.fromString;
     const toStatus = statusChange.toString;
 
-    console.log('=== STATUS CHANGE ===');
-    console.log('From:', fromStatus);
-    console.log('To:', toStatus);
-    console.log('Project:', projectKey);
-
     if (fromStatus === 'In Review' && toStatus === 'To Do') {
-      console.log('✅ Match! Sending to Slack...');
 
       processedWebhooks.set(webhookId, Date.now());
 
       if (!SLACK_WEBHOOK_URL) {
-        console.error('SLACK_WEBHOOK_URL is not configured!');
         return NextResponse.json({ error: 'Slack webhook not configured' }, { status: 500 });
       }
 
@@ -121,19 +106,14 @@ export async function POST(request: NextRequest) {
         ],
       };
 
-      console.log('Sending to Slack...');
-
       const response = await fetch(SLACK_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(slackMessage),
       });
 
-      console.log('Slack response status:', response.status);
-
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Slack API error:', response.status, errorText);
         return NextResponse.json(
           {
             error: 'Failed to send to Slack',
@@ -144,7 +124,6 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      console.log('✅ Message sent to Slack successfully!');
       return NextResponse.json(
         {
           message: 'Notification sent to Slack',
@@ -154,10 +133,6 @@ export async function POST(request: NextRequest) {
         { status: 200 }
       );
     }
-
-    console.log('❌ Status change does not match criteria');
-    console.log('Expected: W TRAKCIE WERYFIKACJI → DO ZROBIENIA');
-    console.log(`Got: ${fromStatus} → ${toStatus}`);
 
     return NextResponse.json(
       {
@@ -169,7 +144,6 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error processing webhook:', error);
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -178,18 +152,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-export async function GET() {
-  return NextResponse.json({
-    status: 'healthy',
-    message: 'Jira webhook endpoint is running',
-    slackConfigured: !!SLACK_WEBHOOK_URL,
-    config: {
-      project: 'UT',
-      transition: 'W TRAKCIE WERYFIKACJI → DO ZROBIENIA',
-      messageTitle: 'Zadanie Gotowe do Realizacji',
-      cachedWebhooks: processedWebhooks.size,
-    },
-  });
 }
