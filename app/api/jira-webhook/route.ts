@@ -64,12 +64,12 @@ export async function POST(request: NextRequest) {
     if (webhookEvent !== 'jira:issue_updated') {
       return NextResponse.json({ message: 'Not an issue update' }, { status: 200 });
     }
-    if (issue) {
-      return NextResponse.json({ message: issue?.fields?.project?.key }, { status: 200 });
-    }
 
     if (projectKey === 'PPCSHD') {
-      return NextResponse.json({ message: 'PPCSHD project' }, { status: 200 });
+      return NextResponse.json(
+        { message: { foo: 'PPCSHD project', bar: projectKey } },
+        { status: 200 }
+      );
     }
 
     if (projectKey !== 'UT') {
