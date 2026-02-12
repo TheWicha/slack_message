@@ -66,10 +66,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (projectKey === 'PPCSHD') {
-      return NextResponse.json(
-        { message: { foo: 'PPCSHD project', bar: projectKey } },
-        { status: 200 }
-      );
+      const response = { message: { foo: 'PPCSHD project', bar: projectKey } };
+      console.log('PPCSHD Response:', JSON.stringify(response));
+      return NextResponse.json(response, { status: 200 });
     }
 
     if (projectKey !== 'UT') {
