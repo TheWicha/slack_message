@@ -64,7 +64,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Not an issue update' }, { status: 200 });
     }
 
+    if (issue) {
+      return NextResponse.json({ message: issue?.fields?.project?.key }, { status: 400 });
+    }
+
     const projectKey = issue?.fields?.project?.key;
+    if (projectKey === 'PPCSHD') {
+      return NextResponse.json({ message: 'PPCSHD project' }, { status: 400 });
+    }
     if (projectKey !== 'UT') {
       return NextResponse.json({ message: 'Not UT project' }, { status: 200 });
     }
