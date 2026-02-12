@@ -59,19 +59,19 @@ export async function POST(request: NextRequest) {
 
     const webhookEvent = payload.webhookEvent;
     const issue = payload.issue;
+    const projectKey = issue?.fields?.project?.key;
 
     if (webhookEvent !== 'jira:issue_updated') {
       return NextResponse.json({ message: 'Not an issue update' }, { status: 200 });
     }
-
     if (issue) {
-      return NextResponse.json({ message: issue?.fields?.project?.key }, { status: 439 });
+      return NextResponse.json({ message: issue?.fields?.project?.key }, { status: 200 });
     }
 
-    const projectKey = issue?.fields?.project?.key;
     if (projectKey === 'PPCSHD') {
-      return NextResponse.json({ message: 'PPCSHD project' }, { status: 439 });
+      return NextResponse.json({ message: 'PPCSHD project' }, { status: 200 });
     }
+
     if (projectKey !== 'UT') {
       return NextResponse.json({ message: 'Not UT project' }, { status: 200 });
     }
