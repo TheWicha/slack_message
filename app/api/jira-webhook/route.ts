@@ -65,12 +65,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (issue) {
-      return NextResponse.json({ message: issue?.fields?.project?.key }, { status: 400 });
+      return NextResponse.json({ message: issue?.fields?.project?.key }, { status: 439 });
     }
 
     const projectKey = issue?.fields?.project?.key;
     if (projectKey === 'PPCSHD') {
-      return NextResponse.json({ message: 'PPCSHD project' }, { status: 400 });
+      return NextResponse.json({ message: 'PPCSHD project' }, { status: 439 });
     }
     if (projectKey !== 'UT') {
       return NextResponse.json({ message: 'Not UT project' }, { status: 200 });
