@@ -70,33 +70,38 @@ export async function POST(request: NextRequest) {
         numerZadania: payload.issue.key,
         opisZadania: payload.issue.fields.description,
         status: payload.issue.fields.status.name,
+
         zgloszonePrzez: payload.issue.fields.reporter.displayName,
-        modul:
-          payload.issue.fields.components.map((c: { name: string }) => c.name).join(', ') || '-',
+
+        modul: payload.issue.fields.customfield_10189?.value || '-',
+
         kategorie: payload.issue.fields.issuetype.name,
+
         utworzono: payload.issue.fields.created,
-        przypisaneDo: payload.issue.fields.assignee?.displayName || '-',
+
+        dataUzyskaniaPelnychInformacji: payload.issue.fields.customfield_10192 || null,
+
         priorytet: payload.issue.fields.priority.name,
-        slaFirstResponse: {
-          goalDuration:
-            payload.issue.fields.customfield_10066?.ongoingCycle?.goalDuration?.friendly,
-          elapsedTime: payload.issue.fields.customfield_10066?.ongoingCycle?.elapsedTime?.friendly,
-          remainingTime:
-            payload.issue.fields.customfield_10066?.ongoingCycle?.remainingTime?.friendly,
+
+        odbiorcaRaportu: payload.issue.fields.customfield_10190?.[0]?.value || '-',
+
+        statusWady: payload.issue.fields.customfield_10119?.value || '-',
+
+
+        slaTimes: {
+          firstResponseTime:
+            payload.issue.fields.customfield_10066?.ongoingCycle?.breachTime?.friendly || null,
+
+          resolutionTime:
+            payload.issue.fields.customfield_10065?.ongoingCycle?.breachTime?.friendly || null,
         },
-        slaResolution: {
-          goalDuration:
-            payload.issue.fields.customfield_10065?.ongoingCycle?.goalDuration?.friendly,
-          elapsedTime: payload.issue.fields.customfield_10065?.ongoingCycle?.elapsedTime?.friendly,
-          remainingTime:
-            payload.issue.fields.customfield_10065?.ongoingCycle?.remainingTime?.friendly,
-        },
+
         statusChange: payload.changelog?.items?.[0] || null,
       };
 
-      console.log('PPCSHD Data:', JSON.stringify(payload, null, 2));
+      console.log('PPCSHD Data:', JSON.stringify(logData, null, 2));
 
-      const response = { message: { foo: 'PPCSHD project', data: payload } };
+      const response = { message: { foo: 'PPCSHD project', data: logData } };
       return NextResponse.json(response, { status: 200 });
     }
     if (projectKey !== 'UT') {
