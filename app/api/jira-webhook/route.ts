@@ -71,7 +71,8 @@ export async function POST(request: NextRequest) {
         opisZadania: payload.issue.fields.description,
         status: payload.issue.fields.status.name,
         zgloszonePrzez: payload.issue.fields.reporter.displayName,
-        modul: payload.issue.fields.components.map((c: {name: string}) => c.name).join(', ') || '-',
+        modul:
+          payload.issue.fields.components.map((c: { name: string }) => c.name).join(', ') || '-',
         kategorie: payload.issue.fields.issuetype.name,
         utworzono: payload.issue.fields.created,
         przypisaneDo: payload.issue.fields.assignee?.displayName || '-',
@@ -93,9 +94,9 @@ export async function POST(request: NextRequest) {
         statusChange: payload.changelog?.items?.[0] || null,
       };
 
-      console.log('PPCSHD Data:', JSON.stringify(logData, null, 2));
+      console.log('PPCSHD Data:', JSON.stringify(payload, null, 2));
 
-      const response = { message: { foo: 'PPCSHD project', data: logData } };
+      const response = { message: { foo: 'PPCSHD project', data: payload } };
       return NextResponse.json(response, { status: 200 });
     }
     if (projectKey !== 'UT') {
