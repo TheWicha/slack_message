@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 const JIRA_WEBHOOK_SECRET = process.env.JIRA_WEBHOOK_SECRET;
+const PPCSHD_STATUS_URL = process.env.PPCSHD_STATUS_URL;
 
 const processedWebhooks = new Map<string, number>();
 const CACHE_DURATION = 60000;
@@ -32,6 +33,15 @@ function verifyJiraSignature(payload: string, signature: string | null): boolean
   } catch {
     return false;
   }
+}
+
+async function sendPpcshdStatus(data: object): Promise<void> {
+  if (!PPCSHD_STATUS_URL) return;
+  await fetch(PPCSHD_STATUS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -100,6 +110,8 @@ export async function POST(request: NextRequest) {
       };
 
       console.log('PPCSHD Data:', JSON.stringify(logData, null, 2));
+
+      await sendPpcshdStatus(logData);
 
       const response = { message: { foo: 'PPCSHD project', data: logData } };
       return NextResponse.json(response, { status: 200 });
