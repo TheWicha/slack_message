@@ -6,16 +6,6 @@ const JIRA_WEBHOOK_SECRET = process.env.JIRA_WEBHOOK_SECRET;
 const PPCSHD_STATUS_URL = process.env.PPCSHD_STATUS_URL;
 
 const processedWebhooks = new Map<string, number>();
-const CACHE_DURATION = 60000;
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, timestamp] of processedWebhooks.entries()) {
-    if (now - timestamp > CACHE_DURATION) {
-      processedWebhooks.delete(key);
-    }
-  }
-}, 30000);
 
 function verifyJiraSignature(payload: string, signature: string | null): boolean {
   if (!JIRA_WEBHOOK_SECRET || !signature) {
@@ -71,11 +61,10 @@ export async function POST(request: NextRequest) {
     const issue = payload.issue;
     const projectKey = issue?.fields?.project?.key;
 
-    if (webhookEvent !== 'jira:issue_updated') {
-      return NextResponse.json({ message: 'Not an issue update' }, { status: 200 });
-    }
-
     if (projectKey === 'PPCSHD') {
+      if (webhookEvent !== 'jira:issue_created' && webhookEvent !== 'jira:issue_updated') {
+        return NextResponse.json({ message: 'Not an issue create or update' }, { status: 200 });
+      }
       const logData = {
         numerZadania: payload.issue.key,
         opisZadania: payload.issue.fields.description,
@@ -97,7 +86,6 @@ export async function POST(request: NextRequest) {
 
         statusWady: payload.issue.fields.customfield_10119?.value || '-',
 
-
         slaTimes: {
           firstResponseTime:
             payload.issue.fields.customfield_10066?.ongoingCycle?.breachTime?.friendly || null,
@@ -109,8 +97,6 @@ export async function POST(request: NextRequest) {
         statusChange: payload.changelog?.items?.[0] || null,
       };
 
-      console.log('PPCSHD Data:', JSON.stringify(logData, null, 2));
-
       await sendPpcshdStatus(logData);
 
       const response = { message: { foo: 'PPCSHD project', data: logData } };
@@ -118,6 +104,10 @@ export async function POST(request: NextRequest) {
     }
     if (projectKey !== 'UT') {
       return NextResponse.json({ message: 'Not UT project' }, { status: 200 });
+    }
+
+    if (webhookEvent !== 'jira:issue_updated') {
+      return NextResponse.json({ message: 'Not an issue update' }, { status: 200 });
     }
 
     const changelog = payload.changelog;
