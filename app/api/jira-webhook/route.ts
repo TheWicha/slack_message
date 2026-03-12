@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
       }
       const logData = {
         numerZadania: payload.issue.key,
+        podsumowanie: payload.issue.fields.summary,
         opisZadania: payload.issue.fields.description,
         status: payload.issue.fields.status.name,
 
