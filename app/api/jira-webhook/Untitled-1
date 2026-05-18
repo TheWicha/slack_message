@@ -1,0 +1,456 @@
+
+PPCSHD webhook payload: {
+  "timestamp": 1779099488288,
+  "webhookEvent": "jira:issue_updated",
+  "issue_event_type_name": "issue_resolved",
+  "user": {
+    "self": "https://polskipcs.atlassian.net/rest/api/2/user?accountId=712020%3A670ce0d8-51b6-4ea1-883b-993a0ec7a4f0",
+    "accountId": "712020:670ce0d8-51b6-4ea1-883b-993a0ec7a4f0",
+    "avatarUrls": {
+      "48x48": "https://secure.gravatar.com/avatar/2b3376521183dc52cebafd08867b0b3d?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FPK-1.png",
+      "24x24": "https://secure.gravatar.com/avatar/2b3376521183dc52cebafd08867b0b3d?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FPK-1.png",
+      "16x16": "https://secure.gravatar.com/avatar/2b3376521183dc52cebafd08867b0b3d?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FPK-1.png",
+      "32x32": "https://secure.gravatar.com/avatar/2b3376521183dc52cebafd08867b0b3d?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FPK-1.png"
+    },
+    "displayName": "Piotr Ksepko",
+    "active": true,
+    "timeZone": "Europe/Berlin",
+    "accountType": "atlassian"
+  },
+  "issue": {
+    "id": "32875",
+    "self": "https://polskipcs.atlassian.net/rest/api/2/issue/32875",
+    "key": "PPCSHD-1098",
+    "fields": {
+      "statuscategorychangedate": "2026-05-18T12:18:08.327+0200",
+      "customfield_10190": [
+        {
+          "self": "https://polskipcs.atlassian.net/rest/api/2/customFieldOption/10099",
+          "value": "Zarząd Morskiego Portu Gdańsk",
+          "id": "10099"
+        }
+      ],
+      "customfield_10192": null,
+      "customfield_10071": null,
+      "customfield_10072": null,
+      "customfield_10073": null,
+      "customfield_10074": null,
+      "customfield_10075": null,
+      "customfield_10076": null,
+      "fixVersions": [],
+      "customfield_10110": null,
+      "statusCategory": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/statuscategory/3",
+        "id": 3,
+        "key": "done",
+        "colorName": "green",
+        "name": "Complete"
+      },
+      "customfield_10078": null,
+      "customfield_10111": null,
+      "resolution": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/resolution/10000",
+        "id": "10000",
+        "description": "Work has been completed on this issue.",
+        "name": "Done"
+      },
+      "customfield_10112": null,
+      "customfield_10079": null,
+      "customfield_10113": null,
+      "customfield_10114": null,
+      "customfield_10104": null,
+      "customfield_10105": null,
+      "customfield_10106": null,
+      "customfield_10107": null,
+      "customfield_10108": null,
+      "customfield_10109": null,
+      "lastViewed": "2026-05-18T12:18:08.067+0200",
+      "customfield_10063": null,
+      "customfield_10064": null,
+      "customfield_10065": {
+        "id": "3",
+        "name": "Czas do rozwiązania",
+        "_links": {
+          "self": "https://polskipcs.atlassian.net/rest/servicedeskapi/request/32875/sla/3"
+        },
+        "completedCycles": [],
+        "ongoingCycle": {
+          "startTime": {
+            "iso8601": "2026-03-05T12:48:54+0100",
+            "jira": "2026-03-05T12:48:54.596+0100",
+            "friendly": "05/mar/26 12:48 PM",
+            "epochMillis": 1772711334596
+          },
+          "breachTime": {
+            "iso8601": "2026-04-17T13:19:54+0200",
+            "jira": "2026-04-17T13:19:54.596+0200",
+            "friendly": "17/kwi/26 1:19 PM",
+            "epochMillis": 1776424794596
+          },
+          "breached": true,
+          "paused": false,
+          "withinCalendarHours": true,
+          "goalDuration": {
+            "millis": 2678400000,
+            "friendly": "744 godz."
+          },
+          "elapsedTime": {
+            "millis": 4487834427,
+            "friendly": "1 246 godz. 37 min"
+          },
+          "remainingTime": {
+            "millis": -1809434427,
+            "friendly": "-502 godz. 37 min"
+          }
+        }
+      },
+      "customfield_10066": {
+        "id": "4",
+        "name": "Czas do pierwszej odpowiedzi",
+        "_links": {
+          "self": "https://polskipcs.atlassian.net/rest/servicedeskapi/request/32875/sla/4"
+        },
+        "completedCycles": [
+          {
+            "startTime": {
+              "iso8601": "2026-03-05T12:48:54+0100",
+              "jira": "2026-03-05T12:48:54.596+0100",
+              "friendly": "05/mar/26 12:48 PM",
+              "epochMillis": 1772711334596
+            },
+            "stopTime": {
+              "iso8601": "2026-05-18T12:09:38+0200",
+              "jira": "2026-05-18T12:09:38.289+0200",
+              "friendly": "Dzisiaj 12:09 PM",
+              "epochMillis": 1779098978289
+            },
+            "breachTime": {
+              "iso8601": "2026-03-05T16:48:54+0100",
+              "jira": "2026-03-05T16:48:54.596+0100",
+              "friendly": "05/mar/26 4:48 PM",
+              "epochMillis": 1772725734596
+            },
+            "breached": true,
+            "goalDuration": {
+              "millis": 14400000,
+              "friendly": "4 godz."
+            },
+            "elapsedTime": {
+              "millis": 6387643693,
+              "friendly": "1 774 godz. 20 min"
+            },
+            "remainingTime": {
+              "millis": -6373243693,
+              "friendly": "-1 770 godz. 20 min"
+            }
+          }
+        ]
+      },
+      "priority": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/priority/4",
+        "iconUrl": "https://polskipcs.atlassian.net/images/icons/priorities/low_new.svg",
+        "name": "Low",
+        "id": "4"
+      },
+      "customfield_10067": [],
+      "customfield_10100": null,
+      "customfield_10101": null,
+      "customfield_10189": null,
+      "customfield_10102": null,
+      "customfield_10103": null,
+      "labels": [],
+      "aggregatetimeoriginalestimate": null,
+      "timeestimate": 0,
+      "versions": [],
+      "issuelinks": [],
+      "assignee": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/user?accountId=712020%3A44895de9-7227-4c27-bb31-5e6ac18d3b16",
+        "accountId": "712020:44895de9-7227-4c27-bb31-5e6ac18d3b16",
+        "avatarUrls": {
+          "48x48": "https://secure.gravatar.com/avatar/b72598dca7cce9ef77acb17190e52f38?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDW-1.png",
+          "24x24": "https://secure.gravatar.com/avatar/b72598dca7cce9ef77acb17190e52f38?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDW-1.png",
+          "16x16": "https://secure.gravatar.com/avatar/b72598dca7cce9ef77acb17190e52f38?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDW-1.png",
+          "32x32": "https://secure.gravatar.com/avatar/b72598dca7cce9ef77acb17190e52f38?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FDW-1.png"
+        },
+        "displayName": "Daniel Wiśniewski",
+        "active": true,
+        "timeZone": "Europe/Berlin",
+        "accountType": "atlassian"
+      },
+      "status": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/status/5",
+        "description": "A resolution has been taken, and it is awaiting verification by reporter. From here issues are either reopened, or are closed.",
+        "iconUrl": "https://polskipcs.atlassian.net/images/icons/statuses/resolved.png",
+        "name": "Rozwiązany",
+        "id": "5",
+        "statusCategory": {
+          "self": "https://polskipcs.atlassian.net/rest/api/2/statuscategory/3",
+          "id": 3,
+          "key": "done",
+          "colorName": "green",
+          "name": "Complete"
+        }
+      },
+      "components": [],
+      "customfield_10054": null,
+      "customfield_10055": null,
+      "customfield_10056": null,
+      "customfield_10057": null,
+      "customfield_10058": null,
+      "customfield_10059": null,
+      "aggregatetimeestimate": 0,
+      "creator": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/user?accountId=64143d15b05b4e3e7da997d8",
+        "accountId": "64143d15b05b4e3e7da997d8",
+        "avatarUrls": {
+          "48x48": "https://secure.gravatar.com/avatar/39e24a0befd5e957ceae0460edd4796a?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIM-5.png",
+          "24x24": "https://secure.gravatar.com/avatar/39e24a0befd5e957ceae0460edd4796a?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIM-5.png",
+          "16x16": "https://secure.gravatar.com/avatar/39e24a0befd5e957ceae0460edd4796a?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIM-5.png",
+          "32x32": "https://secure.gravatar.com/avatar/39e24a0befd5e957ceae0460edd4796a?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FIM-5.png"
+        },
+        "displayName": "Ignacy Mieczkowski",
+        "active": true,
+        "timeZone": "Europe/Berlin",
+        "accountType": "atlassian"
+      },
+      "subtasks": [],
+      "customfield_10040": {
+        "languageCode": "pl",
+        "displayName": "polski"
+      },
+      "customfield_10042": null,
+      "reporter": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/user?accountId=62c6b586e16ddfe82be04c9e",
+        "accountId": "62c6b586e16ddfe82be04c9e",
+        "avatarUrls": {
+          "48x48": "https://secure.gravatar.com/avatar/6050e7f5a836fa23e1056ea9678f59f6?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FFD-6.png",
+          "24x24": "https://secure.gravatar.com/avatar/6050e7f5a836fa23e1056ea9678f59f6?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FFD-6.png",
+          "16x16": "https://secure.gravatar.com/avatar/6050e7f5a836fa23e1056ea9678f59f6?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FFD-6.png",
+          "32x32": "https://secure.gravatar.com/avatar/6050e7f5a836fa23e1056ea9678f59f6?d=https%3A%2F%2Favatar-management--avatars.us-west-2.prod.public.atl-paas.net%2Finitials%2FFD-6.png"
+        },
+        "displayName": "Filip Dzienisz",
+        "active": true,
+        "timeZone": "Europe/Berlin",
+        "accountType": "atlassian"
+      },
+      "customfield_10043": null,
+      "aggregateprogress": {
+        "progress": 590400,
+        "total": 590400,
+        "percent": 100
+      },
+      "customfield_10045": null,
+      "customfield_10038": null,
+      "customfield_10039": null,
+      "progress": {
+        "progress": 590400,
+        "total": 590400,
+        "percent": 100
+      },
+      "votes": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/issue/PPCSHD-1098/votes",
+        "votes": 0,
+        "hasVoted": false
+      },
+      "issuetype": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/issuetype/10005",
+        "id": "10005",
+        "description": "An event that causes disruption to or a reduction in the quality of a service which requires an emergency response",
+        "iconUrl": "https://polskipcs.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10512?size=medium",
+        "name": "Incident",
+        "subtask": false,
+        "avatarId": 10512,
+        "hierarchyLevel": 0
+      },
+      "timespent": 590400,
+      "customfield_10030": null,
+      "project": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/project/10033",
+        "id": "10033",
+        "key": "PPCSHD",
+        "name": "HelpDesk-PPCS",
+        "projectTypeKey": "service_desk",
+        "simplified": false,
+        "avatarUrls": {
+          "48x48": "https://polskipcs.atlassian.net/rest/api/2/universal_avatar/view/type/project/avatar/10415",
+          "24x24": "https://polskipcs.atlassian.net/rest/api/2/universal_avatar/view/type/project/avatar/10415?size=small",
+          "16x16": "https://polskipcs.atlassian.net/rest/api/2/universal_avatar/view/type/project/avatar/10415?size=xsmall",
+          "32x32": "https://polskipcs.atlassian.net/rest/api/2/universal_avatar/view/type/project/avatar/10415?size=medium"
+        }
+      },
+      "customfield_10031": null,
+      "aggregatetimespent": 590400,
+      "customfield_10035": null,
+      "customfield_10036": null,
+      "customfield_10037": null,
+      "customfield_10027": null,
+      "customfield_10029": null,
+      "resolutiondate": "2026-05-18T12:18:08.220+0200",
+      "workratio": -1,
+      "issuerestriction": {
+        "issuerestrictions": {},
+        "shouldDisplay": false
+      },
+      "watches": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/issue/PPCSHD-1098/watchers",
+        "watchCount": 2,
+        "isWatching": true
+      },
+      "created": "2026-03-05T12:48:54.596+0100",
+      "customfield_10020": {
+        "_links": {
+          "jiraRest": "https://polskipcs.atlassian.net/rest/api/2/issue/32875",
+          "web": "https://polskipcs.atlassian.net/servicedesk/customer/portal/2/PPCSHD-1098",
+          "agent": "https://polskipcs.atlassian.net/browse/PPCSHD-1098",
+          "self": "https://polskipcs.atlassian.net/rest/servicedeskapi/request/32875"
+        },
+        "requestType": {
+          "_expands": [
+            "field"
+          ],
+          "id": "26",
+          "_links": {
+            "self": "https://polskipcs.atlassian.net/rest/servicedeskapi/servicedesk/2/requesttype/26"
+          },
+          "name": "Awaria",
+          "description": "Zgłoś poważne zakłócenie pracy oprogramowania lub jego poszczególnych modułów.",
+          "helpText": "",
+          "defaultName": "Awaria",
+          "issueTypeId": "10005",
+          "serviceDeskId": "2",
+          "portalId": "2",
+          "groupIds": [
+            "3"
+          ],
+          "icon": {
+            "id": "10476",
+            "_links": {
+              "iconUrls": {
+                "48x48": "https://polskipcs.atlassian.net/rest/api/2/universal_avatar/view/type/SD_REQTYPE/avatar/10476?size=large",
+                "24x24": "https://polskipcs.atlassian.net/rest/api/2/universal_avatar/view/type/SD_REQTYPE/avatar/10476?size=small",
+                "16x16": "https://polskipcs.atlassian.net/rest/api/2/universal_avatar/view/type/SD_REQTYPE/avatar/10476?size=xsmall",
+                "32x32": "https://polskipcs.atlassian.net/rest/api/2/universal_avatar/view/type/SD_REQTYPE/avatar/10476?size=medium"
+              }
+            }
+          }
+        },
+        "currentStatus": {
+          "status": "Rozwiązany",
+          "statusCategory": "DONE",
+          "statusDate": {
+            "iso8601": "2026-05-18T12:18:08+0200",
+            "jira": "2026-05-18T12:18:08.288+0200",
+            "friendly": "Dzisiaj 12:18 PM",
+            "epochMillis": 1779099488288
+          }
+        }
+      },
+      "customfield_10023": null,
+      "customfield_10026": null,
+      "customfield_10017": null,
+      "customfield_10018": null,
+      "customfield_10019": [],
+      "updated": "2026-05-18T12:18:08.288+0200",
+      "timeoriginalestimate": null,
+      "customfield_10095": null,
+      "description": "testowe zgłoszenie",
+      "customfield_10010": null,
+      "customfield_10011": "0|i01y0z:",
+      "customfield_10099": [
+        {
+          "self": "https://polskipcs.atlassian.net/rest/api/2/customFieldOption/10063",
+          "value": "Akceptuję warunki korzystania z help desk",
+          "id": "10063"
+        }
+      ],
+      "customfield_10012": "2026-05-18T12:09:38.289+0200",
+      "customfield_10013": "1_*:*_2_*:*_602388339_*|*_3_*:*_2_*:*_5784993335",
+      "customfield_10014": 1,
+      "timetracking": {
+        "remainingEstimate": "0m",
+        "timeSpent": "4w 4h",
+        "remainingEstimateSeconds": 0,
+        "timeSpentSeconds": 590400
+      },
+      "security": null,
+      "customfield_10008": null,
+      "attachment": [],
+      "summary": "Testowe zgłoszenie 3 pod e-PCS",
+      "customfield_10080": null,
+      "customfield_10085": null,
+      "customfield_10120": null,
+      "customfield_10087": null,
+      "customfield_10121": null,
+      "customfield_10122": null,
+      "customfield_10001": null,
+      "customfield_10004": [],
+      "customfield_10115": null,
+      "customfield_10117": null,
+      "environment": null,
+      "customfield_10119": {
+        "self": "https://polskipcs.atlassian.net/rest/api/2/customFieldOption/10090",
+        "value": "Awaria",
+        "id": "10090"
+      },
+      "duedate": null
+    }
+  },
+  "changelog": {
+    "id": "190446",
+    "items": [
+      {
+        "field": "Story Points",
+        "fieldtype": "custom",
+        "fieldId": "customfield_10014",
+        "from": null,
+        "fromString": null,
+        "to": null,
+        "toString": "1"
+      },
+      {
+        "field": "resolution",
+        "fieldtype": "jira",
+        "fieldId": "resolution",
+        "from": null,
+        "fromString": null,
+        "to": "10000",
+        "toString": "Done"
+      },
+      {
+        "field": "status",
+        "fieldtype": "jira",
+        "fieldId": "status",
+        "from": "3",
+        "fromString": "TEST",
+        "to": "5",
+        "toString": "Rozwiązany"
+      },
+      {
+        "field": "timeestimate",
+        "fieldtype": "jira",
+        "fieldId": "timeestimate",
+        "from": null,
+        "fromString": null,
+        "to": "0",
+        "toString": "0"
+      },
+      {
+        "field": "timespent",
+        "fieldtype": "jira",
+        "fieldId": "timespent",
+        "from": null,
+        "fromString": null,
+        "to": "590400",
+        "toString": "590400"
+      },
+      {
+        "field": "WorklogId",
+        "fieldtype": "jira",
+        "from": null,
+        "fromString": null,
+        "to": "47729",
+        "toString": "47729"
+      }
+    ]
+  }
+}

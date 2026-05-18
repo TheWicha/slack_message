@@ -74,8 +74,6 @@ export async function POST(request: NextRequest) {
     const projectKey = issue?.fields?.project?.key;
 
     if (projectKey === "PPCSHD") {
-      console.log("PPCSHD webhook payload:", JSON.stringify(payload, null, 2));
-
       if (
         webhookEvent !== "jira:issue_created" &&
         webhookEvent !== "jira:issue_updated"
@@ -103,7 +101,7 @@ export async function POST(request: NextRequest) {
           payload.issue.fields.customfield_10192 || null,
 
         priorytet: payload.issue.fields.priority.name,
-
+        reactionTime: payload.issue.fields.customfield_10012 || null,
         odbiorcaRaportu:
           payload.issue.fields.customfield_10190?.[0]?.value || "-",
 
