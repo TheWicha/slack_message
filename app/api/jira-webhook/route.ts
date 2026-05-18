@@ -1,5 +1,5 @@
-import crypto from 'crypto';
-import { NextRequest, NextResponse } from 'next/server';
+import crypto from "crypto";
+import { NextRequest, NextResponse } from "next/server";
 
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 const JIRA_WEBHOOK_SECRET = process.env.JIRA_WEBHOOK_SECRET;
@@ -7,19 +7,25 @@ const PPCSHD_STATUS_URL = process.env.PPCSHD_STATUS_URL;
 
 const processedWebhooks = new Map<string, number>();
 
-function verifyJiraSignature(payload: string, signature: string | null): boolean {
+function verifyJiraSignature(
+  payload: string,
+  signature: string | null,
+): boolean {
   if (!JIRA_WEBHOOK_SECRET || !signature) {
     return false;
   }
 
-  const receivedSignature = signature.replace('sha256=', '');
+  const receivedSignature = signature.replace("sha256=", "");
 
-  const hmac = crypto.createHmac('sha256', JIRA_WEBHOOK_SECRET);
+  const hmac = crypto.createHmac("sha256", JIRA_WEBHOOK_SECRET);
   hmac.update(payload);
-  const expectedSignature = hmac.digest('hex');
+  const expectedSignature = hmac.digest("hex");
 
   try {
-    return crypto.timingSafeEqual(Buffer.from(receivedSignature), Buffer.from(expectedSignature));
+    return crypto.timingSafeEqual(
+      Buffer.from(receivedSignature),
+      Buffer.from(expectedSignature),
+    );
   } catch {
     return false;
   }
@@ -28,8 +34,8 @@ function verifyJiraSignature(payload: string, signature: string | null): boolean
 async function sendPpcshdStatus(data: object): Promise<void> {
   if (!PPCSHD_STATUS_URL) return;
   await fetch(PPCSHD_STATUS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 }
@@ -37,16 +43,19 @@ async function sendPpcshdStatus(data: object): Promise<void> {
 export async function POST(request: NextRequest) {
   try {
     if (!JIRA_WEBHOOK_SECRET) {
-      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
+      return NextResponse.json(
+        { error: "Webhook secret not configured" },
+        { status: 500 },
+      );
     }
 
     const signature =
-      request.headers.get('x-hub-signature') ||
-      request.headers.get('x-atlassian-webhook-identifier');
+      request.headers.get("x-hub-signature") ||
+      request.headers.get("x-atlassian-webhook-identifier");
     const rawBody = await request.text();
 
     if (!verifyJiraSignature(rawBody, signature)) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
     const payload = JSON.parse(rawBody);
@@ -54,16 +63,27 @@ export async function POST(request: NextRequest) {
     const webhookId = `${payload.issue?.key}_${payload.changelog?.id}_${payload.timestamp}`;
 
     if (processedWebhooks.has(webhookId)) {
-      return NextResponse.json({ message: 'Duplicate webhook' }, { status: 200 });
+      return NextResponse.json(
+        { message: "Duplicate webhook" },
+        { status: 200 },
+      );
     }
 
     const webhookEvent = payload.webhookEvent;
     const issue = payload.issue;
     const projectKey = issue?.fields?.project?.key;
 
-    if (projectKey === 'PPCSHD') {
-      if (webhookEvent !== 'jira:issue_created' && webhookEvent !== 'jira:issue_updated') {
-        return NextResponse.json({ message: 'Not an issue create or update' }, { status: 200 });
+    if (projectKey === "PPCSHD") {
+      console.log("PPCSHD webhook payload:", JSON.stringify(payload, null, 2));
+
+      if (
+        webhookEvent !== "jira:issue_created" &&
+        webhookEvent !== "jira:issue_updated"
+      ) {
+        return NextResponse.json(
+          { message: "Not an issue create or update" },
+          { status: 200 },
+        );
       }
       const logData = {
         numerZadania: payload.issue.key,
@@ -73,26 +93,30 @@ export async function POST(request: NextRequest) {
 
         zgloszonePrzez: payload.issue.fields.reporter.displayName,
 
-        modul: payload.issue.fields.customfield_10189?.value || '-',
+        modul: payload.issue.fields.customfield_10189?.value || "-",
 
         kategorie: payload.issue.fields.issuetype.name,
 
         utworzono: payload.issue.fields.created,
 
-        dataUzyskaniaPelnychInformacji: payload.issue.fields.customfield_10192 || null,
+        dataUzyskaniaPelnychInformacji:
+          payload.issue.fields.customfield_10192 || null,
 
         priorytet: payload.issue.fields.priority.name,
 
-        odbiorcaRaportu: payload.issue.fields.customfield_10190?.[0]?.value || '-',
+        odbiorcaRaportu:
+          payload.issue.fields.customfield_10190?.[0]?.value || "-",
 
-        statusWady: payload.issue.fields.customfield_10119?.value || '-',
+        statusWady: payload.issue.fields.customfield_10119?.value || "-",
 
         slaTimes: {
           firstResponseTime:
-            payload.issue.fields.customfield_10066?.ongoingCycle?.breachTime?.friendly || null,
+            payload.issue.fields.customfield_10066?.ongoingCycle?.breachTime
+              ?.friendly || null,
 
           resolutionTime:
-            payload.issue.fields.customfield_10065?.ongoingCycle?.breachTime?.friendly || null,
+            payload.issue.fields.customfield_10065?.ongoingCycle?.breachTime
+              ?.friendly || null,
         },
 
         statusChange: payload.changelog?.items?.[0] || null,
@@ -100,82 +124,93 @@ export async function POST(request: NextRequest) {
 
       await sendPpcshdStatus(logData);
 
-      const response = { message: { foo: 'PPCSHD project', data: logData } };
+      const response = { message: { foo: "PPCSHD project", data: payload } };
       return NextResponse.json(response, { status: 200 });
     }
-    if (projectKey !== 'UT') {
-      return NextResponse.json({ message: 'Not UT project' }, { status: 200 });
+    if (projectKey !== "UT") {
+      return NextResponse.json({ message: "Not UT project" }, { status: 200 });
     }
 
-    if (webhookEvent !== 'jira:issue_updated') {
-      return NextResponse.json({ message: 'Not an issue update' }, { status: 200 });
+    if (webhookEvent !== "jira:issue_updated") {
+      return NextResponse.json(
+        { message: "Not an issue update" },
+        { status: 200 },
+      );
     }
 
     const changelog = payload.changelog;
     const statusChange = changelog?.items?.find(
-      (item: { field: string }) => item.field === 'status'
+      (item: { field: string }) => item.field === "status",
     );
 
     if (!statusChange) {
-      return NextResponse.json({ message: 'No status change' }, { status: 200 });
+      return NextResponse.json(
+        { message: "No status change" },
+        { status: 200 },
+      );
     }
 
     const fromStatus = statusChange.fromString;
     const toStatus = statusChange.toString;
 
-    if (fromStatus === 'In Review' && toStatus === 'To Do') {
+    if (fromStatus === "In Review" && toStatus === "To Do") {
       processedWebhooks.set(webhookId, Date.now());
 
       if (!SLACK_WEBHOOK_URL) {
-        return NextResponse.json({ error: 'Slack webhook not configured' }, { status: 500 });
+        return NextResponse.json(
+          { error: "Slack webhook not configured" },
+          { status: 500 },
+        );
       }
 
       const slackMessage = {
         text: `✅ Zadanie gotowe do realizacji: ${issue.key}`,
         blocks: [
           {
-            type: 'header',
+            type: "header",
             text: {
-              type: 'plain_text',
-              text: '✅ Zadanie Gotowe do Realizacji',
+              type: "plain_text",
+              text: "✅ Zadanie Gotowe do Realizacji",
               emoji: true,
             },
           },
           {
-            type: 'section',
+            type: "section",
             fields: [
               {
-                type: 'mrkdwn',
+                type: "mrkdwn",
                 text: `*Klucz:*\n${issue.key}`,
               },
               {
-                type: 'mrkdwn',
+                type: "mrkdwn",
                 text: `*Status:*\n${
-                  fromStatus === 'In Review' ? 'W trakcie weryfikacji' : fromStatus
-                } → ${toStatus === 'To Do' ? 'Do zrobienia' : toStatus}`,
+                  fromStatus === "In Review"
+                    ? "W trakcie weryfikacji"
+                    : fromStatus
+                } → ${toStatus === "To Do" ? "Do zrobienia" : toStatus}`,
               },
               {
-                type: 'mrkdwn',
+                type: "mrkdwn",
                 text: `*Tytuł:*\n${issue.fields.summary}`,
               },
               {
-                type: 'mrkdwn',
+                type: "mrkdwn",
                 text: `*Reporter:*\n${issue.fields.reporter.displayName}`,
               },
             ],
           },
           {
-            type: 'actions',
+            type: "actions",
             elements: [
               {
-                type: 'button',
+                type: "button",
                 text: {
-                  type: 'plain_text',
-                  text: 'Zobacz w Jira',
+                  type: "plain_text",
+                  text: "Zobacz w Jira",
                   emoji: true,
                 },
-                url: `${payload.issue.self.split('/rest/api')[0]}/browse/${issue.key}`,
-                style: 'primary',
+                url: `${payload.issue.self.split("/rest/api")[0]}/browse/${issue.key}`,
+                style: "primary",
               },
             ],
           },
@@ -183,8 +218,8 @@ export async function POST(request: NextRequest) {
       };
 
       const response = await fetch(SLACK_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(slackMessage),
       });
 
@@ -192,40 +227,40 @@ export async function POST(request: NextRequest) {
         const errorText = await response.text();
         return NextResponse.json(
           {
-            error: 'Failed to send to Slack',
+            error: "Failed to send to Slack",
             status: response.status,
             details: errorText,
           },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
       return NextResponse.json(
         {
-          message: 'Notification sent to Slack',
+          message: "Notification sent to Slack",
           issue: issue.key,
           transition: `${fromStatus} → ${toStatus}`,
         },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
     return NextResponse.json(
       {
-        message: 'Status change not matching criteria',
+        message: "Status change not matching criteria",
         from: fromStatus,
         to: toStatus,
-        expected: 'W TRAKCIE WERYFIKACJI → DO ZROBIENIA',
+        expected: "W TRAKCIE WERYFIKACJI → DO ZROBIENIA",
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return NextResponse.json(
       {
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
