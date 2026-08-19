@@ -106,7 +106,17 @@ async function handlePpcshd(payload: any) {
 async function handlePpcs(payload: any, webhookId: string) {
   const issue = payload.issue;
 
+  console.log("[PPCS] start", {
+    issueKey: issue?.key,
+    webhookEvent: payload.webhookEvent,
+    webhookId,
+    currentStatus: issue?.fields?.status?.name,
+    changelogItems: payload.changelog?.items,
+    hasSlackUrl: !!SLACK_WEBHOOK_URL,
+  });
+
   if (payload.webhookEvent !== "jira:issue_updated") {
+    console.log("[PPCS] skip: nie issue_updated", payload.webhookEvent);
     return NextResponse.json(
       { message: "Not an issue update" },
       { status: 200 },
@@ -118,13 +128,20 @@ async function handlePpcs(payload: any, webhookId: string) {
   );
 
   if (!statusChange) {
+    console.log(
+      "[PPCS] skip: brak zmiany statusu w changelogu",
+      payload.changelog?.items?.map((i: { field: string }) => i.field),
+    );
     return NextResponse.json({ message: "No status change" }, { status: 200 });
   }
 
   const fromStatus = statusChange.fromString;
   const toStatus = statusChange.toString;
 
+  console.log("[PPCS] status", { fromStatus, toStatus, expected: "To Do" });
+
   if (toStatus !== "To Do") {
+    console.log("[PPCS] skip: docelowy status != 'To Do'", toStatus);
     return NextResponse.json(
       {
         message: "Status change not matching criteria",
@@ -139,6 +156,7 @@ async function handlePpcs(payload: any, webhookId: string) {
   processedWebhooks.set(webhookId, Date.now());
 
   if (!SLACK_WEBHOOK_URL) {
+    console.error("[PPCS] brak SLACK_WEBHOOK_URL w env");
     return NextResponse.json(
       { error: "Slack webhook not configured" },
       { status: 500 },
@@ -197,6 +215,8 @@ async function handlePpcs(payload: any, webhookId: string) {
     ],
   };
 
+  console.log("[PPCS] wysylam na Slacka", issue.key);
+
   const response = await fetch(SLACK_WEBHOOK_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -205,6 +225,7 @@ async function handlePpcs(payload: any, webhookId: string) {
 
   if (!response.ok) {
     const errorText = await response.text();
+    console.error("[PPCS] Slack odrzucil", response.status, errorText);
     return NextResponse.json(
       {
         error: "Failed to send to Slack",
@@ -214,6 +235,8 @@ async function handlePpcs(payload: any, webhookId: string) {
       { status: 500 },
     );
   }
+
+  console.log("[PPCS] wyslano na Slacka", issue.key);
 
   return NextResponse.json(
     {
@@ -240,6 +263,7 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text();
 
     if (!verifyJiraSignature(rawBody, signature)) {
+      console.error("[jira-webhook] zly podpis, hasSignature:", !!signature);
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
@@ -248,6 +272,7 @@ export async function POST(request: NextRequest) {
     const webhookId = `${payload.issue?.key}_${payload.changelog?.id}_${payload.timestamp}`;
 
     if (processedWebhooks.has(webhookId)) {
+      console.log("[jira-webhook] skip: duplikat", webhookId);
       return NextResponse.json(
         { message: "Duplicate webhook" },
         { status: 200 },
@@ -256,9 +281,18 @@ export async function POST(request: NextRequest) {
 
     const projectKey = payload.issue?.fields?.project?.key;
 
+    console.log("[jira-webhook] routing", {
+      projectKey,
+      webhookEvent: payload.webhookEvent,
+      issueKey: payload.issue?.key,
+      webhookId,
+      matches: { PPCSHD_KEY, PPCS_KEY },
+    });
+
     if (projectKey === PPCSHD_KEY) return handlePpcshd(payload);
     if (projectKey === PPCS_KEY) return handlePpcs(payload, webhookId);
 
+    console.log("[jira-webhook] skip: nieobslugiwany projekt", projectKey);
     return NextResponse.json(
       { message: `Not ${PPCS_KEY} project` },
       { status: 200 },
