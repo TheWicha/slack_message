@@ -1,9 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
 const JIRA_WEBHOOK_SECRET = process.env.JIRA_WEBHOOK_SECRET;
 const PPCSHD_STATUS_URL = process.env.PPCSHD_STATUS_URL;
+
+// klucze projektow Jira - zmieniasz tutaj
+const PPCS_KEY = "PPCS"; // dawniej UT
+const PPCSHD_KEY = "PPCSHD";
 
 const processedWebhooks = new Map<string, number>();
 
@@ -40,6 +45,186 @@ async function sendPpcshdStatus(data: object): Promise<void> {
   });
 }
 
+// PPCSHD: wysylka statusu zadania do zewnetrznego endpointu
+async function handlePpcshd(payload: any) {
+  const webhookEvent = payload.webhookEvent;
+  if (
+    webhookEvent !== "jira:issue_created" &&
+    webhookEvent !== "jira:issue_updated"
+  ) {
+    return NextResponse.json(
+      { message: "Not an issue create or update" },
+      { status: 200 },
+    );
+  }
+
+  const logData = {
+    numerZadania: payload.issue.key,
+    podsumowanie: payload.issue.fields.summary,
+    opisZadania: payload.issue.fields.description,
+    status: payload.issue.fields.status.name,
+
+    zgloszonePrzez: payload.issue.fields.reporter.displayName,
+
+    modul: payload.issue.fields.customfield_10189?.value || "-",
+
+    kategorie: payload.issue.fields.issuetype.name,
+
+    utworzono: payload.issue.fields.created,
+
+    dataUzyskaniaPelnychInformacji:
+      payload.issue.fields.customfield_10192 || null,
+
+    priorytet: payload.issue.fields.priority.name,
+    reactionTime: payload.issue.fields.customfield_10012 || null,
+    odbiorcaRaportu: payload.issue.fields.customfield_10190?.[0]?.value || "-",
+
+    statusWady: payload.issue.fields.customfield_10119?.value || "-",
+
+    slaTimes: {
+      firstResponseTime:
+        payload.issue.fields.customfield_10066?.ongoingCycle?.breachTime
+          ?.friendly || null,
+
+      resolutionTime:
+        payload.issue.fields.customfield_10065?.ongoingCycle?.breachTime
+          ?.friendly || null,
+    },
+
+    statusChange: payload.changelog?.items?.[0] || null,
+  };
+
+  await sendPpcshdStatus(logData);
+
+  return NextResponse.json(
+    { message: { foo: `${PPCSHD_KEY} project`, data: payload } },
+    { status: 200 },
+  );
+}
+
+// PPCS: notyfikacja na Slacka przy przejsciu z dowolnego statusu -> To Do
+async function handlePpcs(payload: any, webhookId: string) {
+  const issue = payload.issue;
+
+  if (payload.webhookEvent !== "jira:issue_updated") {
+    return NextResponse.json(
+      { message: "Not an issue update" },
+      { status: 200 },
+    );
+  }
+
+  const statusChange = payload.changelog?.items?.find(
+    (item: { field: string }) => item.field === "status",
+  );
+
+  if (!statusChange) {
+    return NextResponse.json({ message: "No status change" }, { status: 200 });
+  }
+
+  const fromStatus = statusChange.fromString;
+  const toStatus = statusChange.toString;
+
+  if (toStatus !== "To Do") {
+    return NextResponse.json(
+      {
+        message: "Status change not matching criteria",
+        from: fromStatus,
+        to: toStatus,
+        expected: "* → DO ZROBIENIA",
+      },
+      { status: 200 },
+    );
+  }
+
+  processedWebhooks.set(webhookId, Date.now());
+
+  if (!SLACK_WEBHOOK_URL) {
+    return NextResponse.json(
+      { error: "Slack webhook not configured" },
+      { status: 500 },
+    );
+  }
+
+  const slackMessage = {
+    text: `✅ Zadanie gotowe do realizacji: ${issue.key}`,
+    blocks: [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: "✅ Zadanie Gotowe do Realizacji",
+          emoji: true,
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Klucz:*\n${issue.key}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Status:*\n${
+              fromStatus === "In Review" ? "W trakcie weryfikacji" : fromStatus
+            } → ${toStatus === "To Do" ? "Do zrobienia" : toStatus}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Tytuł:*\n${issue.fields.summary}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Reporter:*\n${issue.fields.reporter.displayName}`,
+          },
+        ],
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: {
+              type: "plain_text",
+              text: "Zobacz w Jira",
+              emoji: true,
+            },
+            url: `${payload.issue.self.split("/rest/api")[0]}/browse/${issue.key}`,
+            style: "primary",
+          },
+        ],
+      },
+    ],
+  };
+
+  const response = await fetch(SLACK_WEBHOOK_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(slackMessage),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    return NextResponse.json(
+      {
+        error: "Failed to send to Slack",
+        status: response.status,
+        details: errorText,
+      },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      message: "Notification sent to Slack",
+      issue: issue.key,
+      transition: `${fromStatus} → ${toStatus}`,
+    },
+    { status: 200 },
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!JIRA_WEBHOOK_SECRET) {
@@ -69,187 +254,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const webhookEvent = payload.webhookEvent;
-    const issue = payload.issue;
-    const projectKey = issue?.fields?.project?.key;
+    const projectKey = payload.issue?.fields?.project?.key;
 
-    if (projectKey === "PPCSHD") {
-      if (
-        webhookEvent !== "jira:issue_created" &&
-        webhookEvent !== "jira:issue_updated"
-      ) {
-        return NextResponse.json(
-          { message: "Not an issue create or update" },
-          { status: 200 },
-        );
-      }
-      const logData = {
-        numerZadania: payload.issue.key,
-        podsumowanie: payload.issue.fields.summary,
-        opisZadania: payload.issue.fields.description,
-        status: payload.issue.fields.status.name,
-
-        zgloszonePrzez: payload.issue.fields.reporter.displayName,
-
-        modul: payload.issue.fields.customfield_10189?.value || "-",
-
-        kategorie: payload.issue.fields.issuetype.name,
-
-        utworzono: payload.issue.fields.created,
-
-        dataUzyskaniaPelnychInformacji:
-          payload.issue.fields.customfield_10192 || null,
-
-        priorytet: payload.issue.fields.priority.name,
-        reactionTime: payload.issue.fields.customfield_10012 || null,
-        odbiorcaRaportu:
-          payload.issue.fields.customfield_10190?.[0]?.value || "-",
-
-        statusWady: payload.issue.fields.customfield_10119?.value || "-",
-
-        slaTimes: {
-          firstResponseTime:
-            payload.issue.fields.customfield_10066?.ongoingCycle?.breachTime
-              ?.friendly || null,
-
-          resolutionTime:
-            payload.issue.fields.customfield_10065?.ongoingCycle?.breachTime
-              ?.friendly || null,
-        },
-
-        statusChange: payload.changelog?.items?.[0] || null,
-      };
-
-      await sendPpcshdStatus(logData);
-
-      const response = { message: { foo: "PPCSHD project", data: payload } };
-      return NextResponse.json(response, { status: 200 });
-    }
-    if (projectKey !== "UT") {
-      return NextResponse.json({ message: "Not UT project" }, { status: 200 });
-    }
-
-    if (webhookEvent !== "jira:issue_updated") {
-      return NextResponse.json(
-        { message: "Not an issue update" },
-        { status: 200 },
-      );
-    }
-
-    const changelog = payload.changelog;
-    const statusChange = changelog?.items?.find(
-      (item: { field: string }) => item.field === "status",
-    );
-
-    if (!statusChange) {
-      return NextResponse.json(
-        { message: "No status change" },
-        { status: 200 },
-      );
-    }
-
-    const fromStatus = statusChange.fromString;
-    const toStatus = statusChange.toString;
-
-    if (fromStatus === "In Review" && toStatus === "To Do") {
-      processedWebhooks.set(webhookId, Date.now());
-
-      if (!SLACK_WEBHOOK_URL) {
-        return NextResponse.json(
-          { error: "Slack webhook not configured" },
-          { status: 500 },
-        );
-      }
-
-      const slackMessage = {
-        text: `✅ Zadanie gotowe do realizacji: ${issue.key}`,
-        blocks: [
-          {
-            type: "header",
-            text: {
-              type: "plain_text",
-              text: "✅ Zadanie Gotowe do Realizacji",
-              emoji: true,
-            },
-          },
-          {
-            type: "section",
-            fields: [
-              {
-                type: "mrkdwn",
-                text: `*Klucz:*\n${issue.key}`,
-              },
-              {
-                type: "mrkdwn",
-                text: `*Status:*\n${
-                  fromStatus === "In Review"
-                    ? "W trakcie weryfikacji"
-                    : fromStatus
-                } → ${toStatus === "To Do" ? "Do zrobienia" : toStatus}`,
-              },
-              {
-                type: "mrkdwn",
-                text: `*Tytuł:*\n${issue.fields.summary}`,
-              },
-              {
-                type: "mrkdwn",
-                text: `*Reporter:*\n${issue.fields.reporter.displayName}`,
-              },
-            ],
-          },
-          {
-            type: "actions",
-            elements: [
-              {
-                type: "button",
-                text: {
-                  type: "plain_text",
-                  text: "Zobacz w Jira",
-                  emoji: true,
-                },
-                url: `${payload.issue.self.split("/rest/api")[0]}/browse/${issue.key}`,
-                style: "primary",
-              },
-            ],
-          },
-        ],
-      };
-
-      const response = await fetch(SLACK_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(slackMessage),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        return NextResponse.json(
-          {
-            error: "Failed to send to Slack",
-            status: response.status,
-            details: errorText,
-          },
-          { status: 500 },
-        );
-      }
-
-      return NextResponse.json(
-        {
-          message: "Notification sent to Slack",
-          issue: issue.key,
-          transition: `${fromStatus} → ${toStatus}`,
-        },
-        { status: 200 },
-      );
-    }
+    if (projectKey === PPCSHD_KEY) return handlePpcshd(payload);
+    if (projectKey === PPCS_KEY) return handlePpcs(payload, webhookId);
 
     return NextResponse.json(
-      {
-        message: "Status change not matching criteria",
-        from: fromStatus,
-        to: toStatus,
-        expected: "W TRAKCIE WERYFIKACJI → DO ZROBIENIA",
-      },
+      { message: `Not ${PPCS_KEY} project` },
       { status: 200 },
     );
   } catch (error) {
@@ -262,3 +273,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
