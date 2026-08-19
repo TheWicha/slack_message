@@ -10,6 +10,9 @@ const PPCSHD_STATUS_URL = process.env.PPCSHD_STATUS_URL;
 const PPCS_KEY = "PPCS"; // dawniej UT
 const PPCSHD_KEY = "PPCSHD";
 
+// status docelowy dla notyfikacji PPCS - porownanie ignoruje wielkosc liter
+const PPCS_TARGET_STATUS = "To Do";
+
 const processedWebhooks = new Map<string, number>();
 
 function verifyJiraSignature(
@@ -138,10 +141,19 @@ async function handlePpcs(payload: any, webhookId: string) {
   const fromStatus = statusChange.fromString;
   const toStatus = statusChange.toString;
 
-  console.log("[PPCS] status", { fromStatus, toStatus, expected: "To Do" });
+  console.log("[PPCS] status", {
+    fromStatus,
+    toStatus,
+    expected: PPCS_TARGET_STATUS,
+  });
 
-  if (toStatus !== "To Do") {
-    console.log("[PPCS] skip: docelowy status != 'To Do'", toStatus);
+  if (
+    toStatus?.toLowerCase().trim() !== PPCS_TARGET_STATUS.toLowerCase().trim()
+  ) {
+    console.log(
+      `[PPCS] skip: docelowy status != '${PPCS_TARGET_STATUS}'`,
+      toStatus,
+    );
     return NextResponse.json(
       {
         message: "Status change not matching criteria",
@@ -183,9 +195,7 @@ async function handlePpcs(payload: any, webhookId: string) {
           },
           {
             type: "mrkdwn",
-            text: `*Status:*\n${
-              fromStatus === "In Review" ? "W trakcie weryfikacji" : fromStatus
-            } → ${toStatus === "To Do" ? "Do zrobienia" : toStatus}`,
+            text: `*Status:*\n${fromStatus} → Do zrobienia`,
           },
           {
             type: "mrkdwn",
